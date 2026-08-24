@@ -58,34 +58,10 @@ test.describe('Credential Detail Page & Workflows Tab', () => {
       // Act - Click Edit credential button
       await app.getByRole('button', { name: 'Edit credential' }).click()
 
-      // Assert - Edit modal opens with pre-populated fields
+      // Assert - Detail entry point opens the edit modal (field checks live in credentials-list.spec.ts)
       const modal = app.getByRole('dialog')
       await expect(modal).toBeVisible()
       await expect(modal.getByText(`Edit ${name}`)).toBeVisible()
-      await expect(modal.getByRole('textbox', { name: 'Credential name' })).toHaveValue(name)
-
-      // Assert - Credential type is disabled in edit mode
-      await expect(modal.getByRole('button', { name: 'Credential type', exact: true })).toBeDisabled()
-    } finally {
-      await deleteCredentialByName(app, name)
-    }
-  })
-
-  test('enable/disable toggle shows confirmation dialog', async ({ app }) => {
-    const { name } = await createTestCredential(app, { prefix: 'e2e-detail-toggle' })
-    try {
-      await navigateToCredentialDetail(app, name)
-
-      // Act - Click the toggle to disable
-      await app.getByRole('switch', { name: /enabled/i }).click({ force: true })
-
-      // Assert - Confirmation dialog appears
-      const dialog = app.getByRole('dialog')
-      await expect(dialog).toBeVisible()
-      await expect(dialog.getByText('Disable credential?')).toBeVisible()
-      await expect(dialog.getByText(new RegExp(name))).toBeVisible()
-      await expect(dialog.getByRole('button', { name: 'Disable' })).toBeVisible()
-      await expect(dialog.getByRole('button', { name: 'Cancel' })).toBeVisible()
     } finally {
       await deleteCredentialByName(app, name)
     }

@@ -2,13 +2,14 @@
  * E2E Tests: Integration Wizard
  *
  * Critical paths covered:
- * - Connection test succeeds and discovers tools within 10s (MCP Server)
  * - Connection test with invalid credential returns auth failure classification (LLM Provider)
  * - Connection test with unreachable endpoint returns connection_error classification
  * - Connection test with delayed/unresponsive endpoint returns timeout classification
  * - Connection test with self-signed TLS cert returns ssl_error classification
  * - Health check status transitions between available and error on list and detail pages
  * - Health check error classifications appear correctly on the integration detail page
+ *
+ * MCP Server happy-path wizard + connection-speed coverage lives in integration-wizard.spec.ts.
  */
 import { test, expect, toAppUrl, type Page } from './fixtures'
 import { buildUniqueName } from './helpers/workflows'
@@ -37,73 +38,6 @@ async function createLlmCredential(app: Page, name: string): Promise<string> {
 }
 
 test.describe('Integration Wizard @pr-check', () => {
-  test.describe('Connection test — MCP Server', () => {
-    test.skip(
-      isRealBackend && !mcpServerUrl,
-      'SYNTARA_E2E_MCP_SERVER_URL not set; cannot test MCP Server on real backend'
-    )
-
-    test('connection test succeeds and discovers resources within 10s', async ({ app }) => {
-      const mcpUrl = isRealBackend ? mcpServerUrl! : 'https://mcp-test.example.com/mcp'
-      const name = buildUniqueName('e2e-wizard-t7')
-      let integrationId: string | undefined
-
-      try {
-        // Step 1 — Integration details
-        await app.goto(toAppUrl('/configuration/integrations/configure'))
-        await expect(app.getByRole('heading', { name: 'Integration details', level: 2 })).toBeVisible()
-
-        await app.getByRole('textbox', { name: 'Server name / ID' }).fill(name)
-        await app.getByRole('textbox', { name: 'API URL' }).fill(mcpUrl)
-
-        if (mcpUrl.startsWith('http://')) {
-          await app.getByRole('button', { name: 'Security' }).click()
-          await app.getByRole('checkbox', { name: 'Allow HTTP connections' }).check()
-        }
-
-        await app.getByRole('button', { name: 'Next' }).click()
-
-        // Step 2 — Connection credential
-        await expect(app.getByRole('heading', { name: 'Connection credential', level: 2 })).toBeVisible()
-
-        const startTime = Date.now()
-        await app.getByRole('button', { name: 'Test connection' }).click()
-
-        // Wait for success alert within 10s
-        await expect(app.getByRole('heading', { name: 'Connection tested' })).toBeVisible({ timeout: 15_000 })
-        const elapsed = Date.now() - startTime
-        expect(elapsed).toBeLessThan(10_000)
-
-        // Verify success description mentions discovered tools
-        await expect(app.getByText(/Successfully connected\. Discovered \d+ tool/)).toBeVisible()
-
-        await app.getByRole('button', { name: 'Next' }).click()
-
-        // Step 3 — Enable tools
-        await expect(app.getByRole('heading', { name: 'Enable tools' })).toBeVisible()
-
-        // Verify at least one tool row appears in the table
-        await expect(app.locator('table tbody tr')).not.toHaveCount(0, { timeout: 10_000 })
-
-        // Save the integration — capture the API response to get the ID
-        const responsePromise = app.waitForResponse('**/api/v1/integrations')
-        await app.getByRole('button', { name: 'Save' }).click()
-        const response = await responsePromise
-        expect(response.status()).toBe(201)
-
-        const body = (await response.json()) as { id?: string }
-        integrationId = body.id
-
-        // Verify redirect to integrations list
-        await expect(app.getByRole('heading', { level: 1, name: 'Integrations' })).toBeVisible({ timeout: 10_000 })
-      } finally {
-        if (integrationId) {
-          await deleteIntegrationViaApi(app, integrationId)
-        }
-      }
-    })
-  })
-
   test('connection test with invalid credential returns auth failure', async ({ app }) => {
     const name = buildUniqueName('e2e-wizard-t8')
     const credName = buildUniqueName('e2e-wizard-t8-cred')

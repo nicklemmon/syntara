@@ -36,54 +36,6 @@ export async function goToServiceAccountDetail(app: Page, sa: { id: string; name
 }
 
 /**
- * Create a service account via the UI create modal.
- * Returns the service account name and credentials from the reveal phase.
- */
-export async function createServiceAccountViaUI(
-  app: Page,
-  options: { name?: string; projectName?: string; description?: string } = {}
-): Promise<{ name: string; clientId: string; clientSecret: string }> {
-  const name = options.name ?? buildUniqueName('sa-e2e')
-  const projectName = options.projectName ?? 'default'
-
-  await goToServiceAccountsList(app)
-  await app.getByRole('button', { name: 'Create service account' }).click()
-
-  const modal = app.getByRole('dialog')
-  await expect(modal).toBeVisible()
-
-  // Select project — menu is portaled to document body (PatternFly default)
-  await modal.getByRole('button', { name: 'Select a project' }).click()
-  await app.getByRole('option', { name: projectName, exact: true }).click()
-
-  // Fill name
-  await modal.getByRole('textbox', { name: 'Name', exact: true }).fill(name)
-
-  // Fill description if provided
-  if (options.description) {
-    await modal.getByRole('textbox', { name: 'Description', exact: true }).fill(options.description)
-  }
-
-  // Submit
-  await modal.getByRole('button', { name: 'Create service account' }).click()
-
-  // Wait for credentials reveal phase
-  await expect(modal.getByText('Service account created')).toBeVisible({ timeout: 15_000 })
-  await expect(modal.getByText('Save these credentials now')).toBeVisible()
-
-  // Extract credentials — two readonly textbox inputs in the credential reveal phase
-  const credentialInputs = modal.getByRole('textbox')
-  const clientId = await credentialInputs.nth(0).inputValue()
-  const clientSecret = await credentialInputs.nth(1).inputValue()
-
-  // Acknowledge and close — scope to footer to avoid matching the modal X button
-  await modal.getByLabel('I have saved the credentials').check()
-  await modal.locator('footer').getByRole('button', { name: 'Close' }).click()
-
-  return { name, clientId, clientSecret }
-}
-
-/**
  * Create a service account via API and optionally disable it.
  * Returns { id, name } for cleanup.
  */

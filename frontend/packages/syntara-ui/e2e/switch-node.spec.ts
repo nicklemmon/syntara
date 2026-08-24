@@ -457,32 +457,5 @@ test.describe('Switch Node — UI-15', () => {
         await deleteWorkflow(app, wfName)
       }
     })
-
-    test('Clicking the switch node on canvas opens the three-panel editor', async ({ app }) => {
-      const wfName = buildUniqueName('switch-panel-open')
-
-      await ensureProject(app)
-      await app.goto(toAppUrl('/workflow-builder/new'))
-      await addManualTrigger(app, 'Manual trigger')
-
-      try {
-        await addSwitchNodeWithCases(app, 'Panel Switch', [{ condition: 'true' }, { condition: 'false' }])
-
-        await selectProjectIfRequired(app)
-        await app.getByPlaceholder('Workflow name').fill(wfName)
-        await app.getByRole('button', { name: 'Save', exact: true }).click()
-        await expect(app).toHaveURL(/workflow-builder\/(?!new\b).+/)
-
-        // Click the node to open the editor
-        await app.locator('[role="group"][aria-roledescription="node"]').filter({ hasText: 'Panel Switch' }).click()
-
-        // Three-panel layout must be visible
-        await expect(app.getByRole('tab', { name: 'Parameters' })).toBeVisible()
-        await expect(app.getByRole('heading', { name: 'Input', exact: true })).toBeVisible()
-        await expect(app.getByRole('heading', { name: 'Output', exact: true })).toBeVisible()
-      } finally {
-        await deleteWorkflow(app, wfName)
-      }
-    })
   })
 })

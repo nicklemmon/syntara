@@ -1,3 +1,9 @@
+/**
+ * E2E Tests: Workflow persistence
+ *
+ * Creates a multi-node workflow, saves it, and verifies it remains in the list.
+ * Canvas/graph structure coverage lives in workflows/builder.spec.ts.
+ */
 import { test, expect, toAppUrl } from './fixtures'
 import { APP_TITLE } from './helpers/appTitle'
 import {

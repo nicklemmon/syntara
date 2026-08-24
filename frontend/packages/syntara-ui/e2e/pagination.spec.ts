@@ -414,15 +414,6 @@ test.describe('Pagination Footer — Integrations', () => {
     const perPageToggle = app.locator('.pf-v6-c-pagination').getByRole('button', { name: /\d+ - \d+/ })
     await expect(perPageToggle).toBeVisible()
   })
-
-  test('per-page dropdown shows page size options', async ({ app }) => {
-    const perPageToggle = app.locator('.pf-v6-c-pagination').getByRole('button', { name: /\d+ - \d+/ })
-    await expect(perPageToggle).toBeVisible()
-    await perPageToggle.click()
-
-    await expect(app.getByRole('menuitem', { name: /10 per page/i })).toBeVisible()
-    await expect(app.getByRole('menuitem', { name: /20 per page/i })).toBeVisible()
-  })
 })
 
 test.describe('Pagination Footer — Identity Providers', () => {

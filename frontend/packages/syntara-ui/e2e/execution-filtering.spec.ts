@@ -1,19 +1,12 @@
 /**
- * E2E Tests: Execution Filtering
+ * E2E Tests: Execution Filtering (page-specific)
  *
- * Critical paths covered:
- * - Keyword search via workflow name async typeahead filter
+ * Shared FilterBar behavior (chips, empty state, shareable URLs, clear-all)
+ * lives in filter-bar.spec.ts. This file covers Executions-only fields:
+ * - Keyword search via workflow name async typeahead
  * - workflow_id URL parameter backwards compatibility
  * - Status filter selection and switching
- * - Combined filters narrow results
- * - Empty state with filters active
- * - Filter chip removal and clear-all
- * - Shareable URLs with filter state
- *
- * Edge cases:
- * - Non-matching filter produces empty state
- * - URL-based filter restoration in new tab
- * - Filter persistence across navigation
+ * - Combined workflow name + status filters
  */
 
 import { createUnavailableGuard, test, expect, toAppUrl, type Page } from './fixtures'
@@ -156,110 +149,6 @@ test.describe('Execution Filtering @pr-check', () => {
 
     await expect(filterToolbar.getByRole('list')).toHaveCount(0)
     await expect(app).not.toHaveURL(/workflow_id=/)
-    await expect(app).not.toHaveURL(/status=/)
-  })
-
-  test('empty state shows when filters return no results', async ({ app }) => {
-    const filterToolbar = app.getByRole('search', { name: 'Filters' })
-
-    await switchFieldSelector(app, 'Workflow name', 'Status')
-
-    // Apply "Completed with errors" — no mock data has this status
-    await filterToolbar.getByRole('button', { name: 'Filter by status' }).click()
-    await app.getByRole('option', { name: 'Completed with errors' }).click()
-
-    const statusChipGroup = filterToolbar.getByRole('list', { name: 'Status' })
-    await expect(statusChipGroup.getByText('Completed with errors')).toBeVisible()
-
-    const table = app.getByRole('grid', { name: 'Executions table' })
-    const emptyHeading = app.getByRole('heading', { name: 'No results found' })
-    await expect(table.or(emptyHeading)).toBeVisible()
-
-    if (await emptyHeading.isVisible()) {
-      await app.getByRole('button', { name: 'Clear all filters' }).last().click()
-
-      const fullTable = app.getByRole('grid', { name: 'Executions table' })
-      const noDataState = app.getByText(/No executions found/i)
-      await expect(fullTable.or(noDataState)).toBeVisible()
-      await expect(statusChipGroup).not.toBeVisible()
-    }
-  })
-
-  test('shareable URLs: filters restored from URL', async ({ app, context }) => {
-    const filterToolbar = app.getByRole('search', { name: 'Filters' })
-
-    await switchFieldSelector(app, 'Workflow name', 'Status')
-
-    await filterToolbar.getByRole('button', { name: 'Filter by status' }).click()
-    await app.getByRole('option', { name: 'Completed', exact: true }).click()
-
-    const statusChipGroup = filterToolbar.getByRole('list', { name: 'Status' })
-    await expect(statusChipGroup.getByText('Completed')).toBeVisible()
-    await expect(app).toHaveURL(/status=completed/)
-
-    const urlWithFilters = app.url()
-
-    const newPage = await context.newPage()
-    await newPage.goto(urlWithFilters)
-
-    await expect(newPage.getByRole('heading', { level: 1, name: 'Workflow Runs' })).toBeVisible()
-    const newPageStatusChipGroup = newPage
-      .getByRole('search', { name: 'Filters' })
-      .getByRole('list', { name: 'Status' })
-    await expect(newPageStatusChipGroup.getByText('Completed')).toBeVisible()
-
-    await newPage.close()
-  })
-
-  test('filter state persists across navigation', async ({ app }) => {
-    await switchFieldSelector(app, 'Workflow name', 'Status')
-
-    const filterToolbar = app.getByRole('search', { name: 'Filters' })
-    await filterToolbar.getByRole('button', { name: 'Filter by status' }).click()
-    await app.getByRole('option', { name: 'Running' }).click()
-
-    await expect(app).toHaveURL(/status=running/)
-    const urlWithFilter = app.url()
-
-    await app.goto(toAppUrl('/'))
-
-    await app.goto(urlWithFilter)
-
-    await expect(app.getByRole('heading', { level: 1, name: 'Workflow Runs' })).toBeVisible()
-    const statusChipGroup = app.getByRole('search', { name: 'Filters' }).getByRole('list', { name: 'Status' })
-    await expect(statusChipGroup.getByText('Running')).toBeVisible()
-    await expect(app).toHaveURL(/status=running/)
-  })
-
-  test('individual filter chips can be removed independently', async ({ app }) => {
-    const filterToolbar = app.getByRole('search', { name: 'Filters' })
-
-    await selectFirstWorkflowOption(app)
-
-    const workflowChipGroup = filterToolbar.getByRole('list', { name: 'Workflow name' })
-    await expect(workflowChipGroup).toBeVisible()
-
-    // Switch field selector from "Workflow name" to "Status"
-    await switchFieldSelector(app, 'Workflow name', 'Status')
-
-    await filterToolbar.getByRole('button', { name: 'Filter by status' }).click()
-    await app.getByRole('option', { name: 'Completed', exact: true }).click()
-
-    const statusChipGroup = filterToolbar.getByRole('list', { name: 'Status' })
-    await expect(statusChipGroup).toBeVisible()
-
-    // Remove workflow chip — status chip should remain
-    await workflowChipGroup.getByRole('button', { name: /^Close / }).click()
-
-    await expect(workflowChipGroup).not.toBeVisible()
-    await expect(statusChipGroup.getByText('Completed')).toBeVisible()
-    await expect(app).not.toHaveURL(/workflow_id=/)
-    await expect(app).toHaveURL(/status=completed/)
-
-    // Remove remaining status filter
-    await statusChipGroup.getByRole('button', { name: 'Close Completed' }).click()
-
-    await expect(filterToolbar.getByRole('list')).toHaveCount(0)
     await expect(app).not.toHaveURL(/status=/)
   })
 })

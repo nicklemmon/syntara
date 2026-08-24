@@ -6,9 +6,9 @@
  *
  * Critical paths covered:
  * - Schema editor renders on Task Agent node form
- * - Schema accepts valid JSON without errors
- * - Schema persists after save and reopen
  * - Empty schema is valid (optional field)
+ *
+ * Valid JSON schema save/persist coverage lives in ai-agent-node.spec.ts.
  */
 import { test, expect, toAppUrl } from './fixtures'
 import { type SeededLlmIntegration, deleteLlmIntegration, createLlmIntegration } from './helpers/llm-helpers'
@@ -41,55 +41,6 @@ test.describe('Task Agent Structured Output', () => {
 
     // Close without saving
     await app.keyboard.press('Escape')
-  })
-
-  test('schema accepts valid JSON without errors', async ({ app }) => {
-    const integrationName = buildUniqueName('e2e-llm-integ')
-    let integration: SeededLlmIntegration | undefined
-    try {
-      integration = await createLlmIntegration(app, integrationName)
-      await app.goto(toAppUrl('/workflow-builder/new'))
-      await addManualTrigger(app)
-
-      // Ensure LLM credential exists (required for AI Agent form submission)
-      const { name: credName } = await ensureLlmCredential(app)
-
-      const layoutButton = app.getByRole('button', { name: 'Layout' })
-      await layoutButton.click()
-
-      const addBtn = app.getByRole('button', { name: 'Add connected step' })
-      await addBtn.click({ force: true })
-
-      const panel = addNodePanel(app)
-      await panel.getByRole('button', { name: 'Task Agent' }).click()
-
-      // Fill required fields
-      await app.getByRole('textbox', { name: 'Name', exact: true }).fill('TestAgent')
-      await app.getByRole('textbox', { name: 'Prompt', exact: true }).fill('Analyze the data')
-
-      // Select LLM credential (required by Zod validation)
-      await selectLlmCredential(app, credName)
-
-      // Fill valid JSON schema using fillCodeEditor helper
-      const validSchema = JSON.stringify({
-        type: 'object',
-        properties: {
-          summary: { type: 'string' },
-          confidence: { type: 'number' },
-        },
-        required: ['summary'],
-      })
-
-      await fillCodeEditor(app, { value: validSchema, label: 'Response schema editor' })
-
-      // Create should succeed without validation errors
-      await app.getByRole('button', { name: 'Create' }).click()
-
-      // Verify the Create button is no longer attached (panel closed successfully)
-      await expect(app.getByRole('button', { name: 'Create' })).not.toBeAttached({ timeout: 15_000 })
-    } finally {
-      if (integration) await deleteLlmIntegration(app, integration.id)
-    }
   })
 
   // Skip: ensureLlmCredential fails on real backend in CI — LLM Provider credential creation not supported

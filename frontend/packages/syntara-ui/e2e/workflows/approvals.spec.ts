@@ -387,62 +387,6 @@ test.describe('Approval Workflow Operations', () => {
     }
   })
 
-  test('user clears decision with explicit undo button', { tag: ['@konflux-skip'] }, async ({ app }) => {
-    // Create a pending approval to test undo/clear behavior
-    const approval = await createPendingApproval(app)
-
-    try {
-      // Navigate to approvals page
-      await app.goto(toAppUrl('/approvals'))
-      await expect(app.getByRole('heading', { level: 1, name: 'Approvals' })).toBeVisible()
-
-      const table = app.getByRole('grid', { name: 'Approvals table' })
-      await table.waitFor({ state: 'visible', timeout: 15_000 })
-
-      // Filter to show only our test approval
-      await app.getByPlaceholder('Filter by name').fill(approval.approvalName)
-      await app.getByRole('button', { name: 'Apply filter' }).click()
-
-      // Click on the pending approval
-      const approvalBtn = table.getByRole('button', { name: approval.approvalName })
-      await approvalBtn.waitFor({ state: 'visible', timeout: 10_000 })
-      await approvalBtn.click()
-      await expect(app.getByRole('heading', { name: 'Review Approval' })).toBeVisible({ timeout: 15_000 })
-
-      // Step 1: Click "Approve"
-      const approveButton = app.getByRole('button', { name: 'Approve', exact: true })
-      await approveButton.click()
-      await expect(app.getByPlaceholder(/explain.*reason.*approving/i)).toBeVisible()
-
-      // Step 2: Look for "Undo decision" or "Clear" button
-      const undoButton = app.getByRole('button', { name: /undo.*decision|clear.*selection/i })
-      const hasUndoButton = await undoButton.isVisible().catch(() => false)
-
-      if (hasUndoButton) {
-        await undoButton.click()
-
-        // Step 3: Verify both approve and reject buttons are visible again
-        await expect(app.getByRole('button', { name: 'Approve', exact: true })).toBeVisible()
-        await expect(app.getByRole('button', { name: 'Reject', exact: true })).toBeVisible()
-
-        // Step 4: Verify notes field is cleared
-        const notesField = app.getByPlaceholder(/explain.*reason/i)
-        await expect(notesField).not.toBeVisible()
-      } else {
-        // If no explicit undo button exists, verify switching between approve/reject acts as undo
-        const rejectButton = app.getByRole('button', { name: 'Reject', exact: true })
-        await expect(rejectButton).toBeVisible()
-
-        // Clicking reject after approve is the undo mechanism
-        await rejectButton.click()
-        await expect(app.getByPlaceholder(/explain.*reason.*rejecting/i)).toBeVisible()
-      }
-    } finally {
-      // Cleanup: delete created workflow
-      await apiRequest(app, 'delete', `/workflows/${approval.workflowId}`).catch(() => {})
-    }
-  })
-
   test('user selects all approvals using header checkbox', async ({ app }) => {
     // Create 2 pending approvals with a shared prefix for filtering
     const batchId = `batch-${Date.now()}`

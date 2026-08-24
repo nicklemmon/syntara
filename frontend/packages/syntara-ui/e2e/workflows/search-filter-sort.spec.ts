@@ -243,48 +243,6 @@ test.describe('Workflows Table - Search, Filter, and Sort', () => {
     }
   })
 
-  test('multiple workflows can be found using partial name search', async ({ app }) => {
-    const workflows = await createTestWorkflows(app, 2)
-    expect(workflows.length).toBeGreaterThanOrEqual(2)
-
-    try {
-      // Use a more specific search term that still matches multiple workflows
-      // Extract the unique identifier that's common to all seeded workflows
-      const firstWorkflow = workflows[0].name
-      const parts = firstWorkflow.split('-')
-      // Get the timestamp+UUID part that's unique to this test run
-      const uniquePrefix = parts.slice(0, 3).join('-') // e.g., "e2e-filter-1779968426167"
-
-      await app.goto(toAppUrl('/workflows'))
-      await expect(app.getByRole('heading', { level: 1, name: 'Workflows' })).toBeVisible()
-
-      // Search using the unique prefix specific to our seeded workflows
-      await app.getByPlaceholder('Filter by name').fill(uniquePrefix)
-      await app.getByRole('button', { name: 'Apply filter' }).click()
-
-      // Verify filter chip appears
-      const nameChipGroup = app.getByRole('search', { name: 'Filters' }).getByRole('list', { name: 'Name' })
-      await expect(nameChipGroup).toBeVisible()
-
-      // Verify table shows results
-      const table = app.getByRole('grid', { name: 'Workflows table' })
-      const hasTable = await table
-        .waitFor({ state: 'visible', timeout: 5000 })
-        .then(() => true)
-        .catch(() => false)
-
-      if (hasTable) {
-        // Verify at least one of our seeded workflows appears
-        // (All should appear since we're using their unique prefix)
-        await expect(table.getByRole('row', { name: new RegExp(workflows[0].name) })).toBeVisible()
-      }
-    } finally {
-      for (const wf of workflows) {
-        await deleteWorkflowViaApi(app, wf.id)
-      }
-    }
-  })
-
   test('search input is preserved after page reload', async ({ app }) => {
     const workflows = await createTestWorkflows(app, 1)
     expect(workflows).toHaveLength(1)

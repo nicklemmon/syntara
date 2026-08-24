@@ -7,9 +7,8 @@
  * Critical paths covered:
  * - Wizard navigation: button on identities tab, page title, step nav
  * - Step 1: Next disabled until user selected, filtering, user selection
- * - Step 2: empty state (no selection heading/filters when source has no identities)
  * - Back from Step 2 clears selections and returns to Step 1
- * - Cancel navigates back to identities tab
+ * - Cancel / Step 2 empty-state coverage lives in user-identity-admin-actions.spec.ts
  * - Full attach flow tested in user-identity-admin-actions.spec.ts (route-intercepted)
  */
 import type { Page } from '@playwright/test'
@@ -122,37 +121,6 @@ test.describe('Transfer Identity Wizard (AAP-75585)', () => {
 
     const wizardNav = app.getByRole('navigation', { name: 'Wizard steps' })
     await expect(wizardNav).toBeVisible()
-  })
-
-  test('cancel navigates back to identities tab', async ({ app }) => {
-    expect(targetUserId, 'Backend seeding failed').toBeTruthy()
-
-    await app.goto(toAppUrl(`${ACCESS_URL}/${targetUserId}/transfer-identity`))
-    await expect(
-      app.getByRole('heading', { level: 1, name: new RegExp(`Transfer identity to ${prefix}-target`) })
-    ).toBeVisible({ timeout: 15_000 })
-
-    await app.getByRole('link', { name: 'Cancel' }).click()
-
-    await expect(app).toHaveURL(new RegExp(`${targetUserId}/identities`))
-  })
-
-  test('step 2 shows empty state when source user has no identities', async ({ app }) => {
-    expect(targetUserId && sourceUserId, 'Backend seeding failed').toBeTruthy()
-
-    await app.goto(toAppUrl(`${ACCESS_URL}/${targetUserId}/transfer-identity`))
-    await expect(
-      app.getByRole('heading', { level: 1, name: new RegExp(`Transfer identity to ${prefix}-target`) })
-    ).toBeVisible({ timeout: 15_000 })
-
-    await app.getByPlaceholder('Filter by username').fill(`${prefix}-source`)
-    await app.getByRole('button', { name: 'Apply filter' }).click()
-    await app.getByText(`${prefix}-source@test.com`).click()
-    await app.getByRole('button', { name: 'Next', exact: true }).click()
-
-    await expect(app.getByText('No identities')).toBeVisible({ timeout: 10_000 })
-    await expect(app.getByText('This user has no federated identities to attach.')).toBeVisible()
-    await expect(app.getByRole('button', { name: 'Transfer identity' })).toBeDisabled()
   })
 
   test('Next button is disabled until a user is selected', async ({ app }) => {

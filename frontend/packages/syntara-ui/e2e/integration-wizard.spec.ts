@@ -55,7 +55,11 @@ test.describe('Create Integration Wizard', () => {
         await app.getByRole('button', { name: 'Health check credential', exact: true }).click()
         await app.getByRole('option', { name: credName }).click()
 
+        const startTime = Date.now()
         await app.getByRole('button', { name: 'Test connection' }).click()
+        await expect(app.getByRole('heading', { name: 'Connection tested' })).toBeVisible({ timeout: 15_000 })
+        expect(Date.now() - startTime).toBeLessThan(10_000)
+        await expect(app.getByText(/Successfully connected\. Discovered \d+ tool/)).toBeVisible()
         await expect(app.getByRole('button', { name: 'Next' })).toBeEnabled({ timeout: 30_000 })
         await app.getByRole('button', { name: 'Next' }).click()
 

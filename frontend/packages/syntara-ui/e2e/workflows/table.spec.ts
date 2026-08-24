@@ -4,11 +4,12 @@
  *  Critical paths covered:
  * - Workflows table displays existing workflows with all required columns
  * - Clicking a workflow name navigates to the workflow builder
- * - Empty state displays when no workflows exist (filtered view)
  *
  * Edge cases:
  * - Table displays status, last run timestamps, and action controls
  * - Workflows can be searched and filtered
+ *
+ * Empty-filter state coverage lives in search-filter-sort.spec.ts.
  */
 
 import { test, expect, toAppUrl } from '../fixtures'
@@ -118,40 +119,6 @@ test.describe('Workflows Table - Display and Navigation', () => {
       await kebabToggle.click({ force: true })
 
       await expect(app.getByRole('menuitem', { name: /Delete workflow/i })).toBeVisible()
-    } finally {
-      await deleteWorkflowViaApi(app, workflow.id)
-    }
-  })
-
-  test('empty state displays when no workflows match filter', async ({ app }) => {
-    // Create a workflow to ensure we have data, then filter for something else
-    const project = await ensureProject(app)
-    const workflowName = buildUniqueName('e2e-empty-state')
-    const workflow = await createWorkflowViaApi(app, {
-      name: workflowName,
-      projectId: project?.id,
-    })
-
-    if (!workflow) throw new Error('Failed to create test workflow')
-
-    try {
-      // Navigate to workflows page
-      await app.goto(toAppUrl('/workflows'))
-      await expect(app.getByRole('heading', { level: 1, name: 'Workflows' })).toBeVisible()
-
-      // Filter for a name that definitely won't match our created workflow
-      const impossibleName = `zzz-nonexistent-${Date.now()}`
-      await app.getByPlaceholder('Filter by name').fill(impossibleName)
-      await app.getByRole('button', { name: 'Apply filter' }).click()
-
-      const nameChipGroup = app.getByRole('search', { name: 'Filters' }).getByRole('list', { name: 'Name' })
-      await expect(nameChipGroup).toBeVisible()
-
-      // Empty state should be visible
-      await expect(app.getByRole('heading', { name: 'No results found' })).toBeVisible()
-
-      // Verify "Clear all filters" button exists in empty state
-      await expect(app.getByRole('button', { name: 'Clear all filters' }).last()).toBeVisible()
     } finally {
       await deleteWorkflowViaApi(app, workflow.id)
     }

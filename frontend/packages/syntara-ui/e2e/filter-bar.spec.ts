@@ -1,3 +1,15 @@
+/**
+ * E2E Tests: Shared FilterBar behavior
+ *
+ * Exercises the shared list-page FilterBar once on Workflows:
+ * apply/clear, chip removal, empty state, URL sync, shareable URLs,
+ * and pagination with an active filter.
+ *
+ * Page-specific filter fields stay in:
+ * - execution-filtering.spec.ts (typeahead, workflow_id, status)
+ * - integration-filtering.spec.ts (status, provider_type combinations)
+ * - run-history-filtering.spec.ts (builder Run history panel)
+ */
 import { test, expect, toAppUrl } from './fixtures'
 import { buildUniqueName } from './helpers/workflows'
 import { createWorkflowViaApi, deleteWorkflowViaApi, type SeededWorkflow } from './seeds/resources'
@@ -9,7 +21,7 @@ test.beforeAll(async ({ browser }) => {
   const page = await browser.newPage()
   const token = await getAuthToken(page)
   if (token) {
-    const prefix = buildUniqueName('e2e-wffilt')
+    const prefix = buildUniqueName('e2e-filterbar')
     const project = await ensureProject(page)
     const projectId = project?.id
 
@@ -36,7 +48,7 @@ test.afterAll(async ({ browser }) => {
   await page.close()
 })
 
-test.describe('Workflow Filtering', () => {
+test.describe('FilterBar (shared list-page behavior)', () => {
   test('full user flow: add filters → view results → clear filters', async ({ app }) => {
     // Navigate to workflows page
     await app.goto(toAppUrl('/workflows'))
@@ -161,7 +173,7 @@ test.describe('Workflow Filtering', () => {
   test('pagination works with active filters', async ({ app }) => {
     const project = await ensureProject(app)
     const projectId = project?.id
-    const prefix = buildUniqueName('e2e-wffilt-pag')
+    const prefix = buildUniqueName('e2e-filterbar-pag')
     const paginationWorkflows: SeededWorkflow[] = []
 
     for (let i = 1; i <= 22; i++) {
