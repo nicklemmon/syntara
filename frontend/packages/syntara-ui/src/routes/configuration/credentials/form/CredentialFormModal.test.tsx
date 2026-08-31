@@ -117,7 +117,7 @@ describe('CredentialFormModal', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(credentialsClient.useMutation).mockReturnValue({ mutate: mockMutate, isPending: false } as any)
     const projectsMock = { projects: mockProjects, isLoading: false, error: null, refetch: vi.fn() }
-     
+
     vi.mocked(useSelectableProjects).mockReturnValue(projectsMock)
   })
 
@@ -477,7 +477,7 @@ describe('CredentialFormModal', () => {
 
   it('shows loading state for projects', () => {
     const loadingMock = { projects: [], isLoading: true, error: null, refetch: vi.fn() }
-     
+
     vi.mocked(useSelectableProjects).mockReturnValue(loadingMock)
 
     render(<CredentialFormModal isOpen onClose={vi.fn()} />, { wrapper })
@@ -488,7 +488,7 @@ describe('CredentialFormModal', () => {
 
   it('shows error when projects fail to load', () => {
     const errorMock = { projects: [], isLoading: false, error: new Error('Network error'), refetch: vi.fn() }
-     
+
     vi.mocked(useSelectableProjects).mockReturnValue(errorMock)
 
     render(<CredentialFormModal isOpen onClose={vi.fn()} />, { wrapper })
