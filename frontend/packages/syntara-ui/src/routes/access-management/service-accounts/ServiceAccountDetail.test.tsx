@@ -223,9 +223,7 @@ describe('ServiceAccountDetail', () => {
       return buildMutationResult()
     }) as never)
 
-    vi.mocked(accessClient.useQuery).mockReturnValue(
-      buildQueryResult({ ...mockServiceAccount, status: 'disabled' })
-    )
+    vi.mocked(accessClient.useQuery).mockReturnValue(buildQueryResult({ ...mockServiceAccount, status: 'disabled' }))
 
     const user = userEvent.setup()
     render(<ServiceAccountDetail />, { wrapper })
@@ -282,9 +280,7 @@ describe('ServiceAccountDetail', () => {
   })
 
   it('shows outline disabled state label on details tab', () => {
-    vi.mocked(accessClient.useQuery).mockReturnValue(
-      buildQueryResult({ ...mockServiceAccount, status: 'disabled' })
-    )
+    vi.mocked(accessClient.useQuery).mockReturnValue(buildQueryResult({ ...mockServiceAccount, status: 'disabled' }))
 
     render(<ServiceAccountDetail />, { wrapper })
 
@@ -292,9 +288,7 @@ describe('ServiceAccountDetail', () => {
   })
 
   it('shows Disabled state for disabled service accounts', () => {
-    vi.mocked(accessClient.useQuery).mockReturnValue(
-      buildQueryResult({ ...mockServiceAccount, status: 'disabled' })
-    )
+    vi.mocked(accessClient.useQuery).mockReturnValue(buildQueryResult({ ...mockServiceAccount, status: 'disabled' }))
 
     render(<ServiceAccountDetail />, { wrapper })
 
@@ -315,9 +309,7 @@ describe('ServiceAccountDetail', () => {
   })
 
   it('renders owning project as plain text when project_name is null', () => {
-    vi.mocked(accessClient.useQuery).mockReturnValue(
-      buildQueryResult({ ...mockServiceAccount, project_name: null })
-    )
+    vi.mocked(accessClient.useQuery).mockReturnValue(buildQueryResult({ ...mockServiceAccount, project_name: null }))
 
     render(<ServiceAccountDetail />, { wrapper })
 
@@ -403,9 +395,7 @@ describe('ServiceAccountDetail', () => {
   })
 
   it('hides description row when description is null', () => {
-    vi.mocked(accessClient.useQuery).mockReturnValue(
-      buildQueryResult({ ...mockServiceAccount, description: null })
-    )
+    vi.mocked(accessClient.useQuery).mockReturnValue(buildQueryResult({ ...mockServiceAccount, description: null }))
 
     render(<ServiceAccountDetail />, { wrapper })
 
