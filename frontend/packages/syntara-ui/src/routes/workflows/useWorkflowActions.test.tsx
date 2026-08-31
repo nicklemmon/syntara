@@ -255,7 +255,7 @@ describe('useWorkflowActions', () => {
       vi.mocked(executionsFetchClient.POST).mockResolvedValue({
         data: { id: 'exec-1' },
         error: undefined,
-      } as never)
+      })
 
       const { result } = renderHook(
         () =>
@@ -296,11 +296,11 @@ describe('useWorkflowActions', () => {
         },
         error: undefined,
         response: new Response(),
-      } as never)
+      })
       vi.mocked(executionsFetchClient.POST).mockResolvedValue({
         data: { id: 'exec-2' },
         error: undefined,
-      } as never)
+      })
 
       const { result } = renderHook(
         () =>
@@ -335,7 +335,7 @@ describe('useWorkflowActions', () => {
         },
         error: undefined,
         response: new Response(),
-      } as never)
+      })
 
       const { result } = renderHook(
         () =>
