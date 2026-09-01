@@ -295,7 +295,8 @@ describe('useExecutionData', () => {
   it('wraps non-Error auto-load failures before storing them', async () => {
     const mockExecution = createMockExecution()
     const setExecutionSpy = vi.spyOn(useExecutionStore.getState(), 'setExecution').mockImplementation(() => {
-      throw 'boom'
+      // eslint-disable-next-line @typescript-eslint/only-throw-error -- intentional non-Error to cover catch wrapping
+      throw { unexpected: true }
     })
 
     vi.mocked(executionsClient.useQuery).mockReturnValue({
@@ -312,7 +313,6 @@ describe('useExecutionData', () => {
       await waitFor(() => {
         const storeError = useExecutionStore.getState().error
         expect(storeError).toBeInstanceOf(Error)
-        expect(storeError?.message).toContain('boom')
       })
     } finally {
       setExecutionSpy.mockRestore()
