@@ -267,6 +267,72 @@ describe('useExecutionData', () => {
     })
   })
 
+  it('stores an Error when auto-load setExecution throws', async () => {
+    const mockExecution = createMockExecution()
+    const setExecutionSpy = vi.spyOn(useExecutionStore.getState(), 'setExecution').mockImplementation(() => {
+      throw new Error('failed to hydrate store')
+    })
+
+    vi.mocked(executionsClient.useQuery).mockReturnValue({
+      data: mockExecution,
+      isLoading: false,
+      isSuccess: true,
+      error: null,
+      refetch: vi.fn(),
+    })
+
+    try {
+      renderHook(() => useExecutionData('exec-123'), { wrapper })
+
+      await waitFor(() => {
+        expect(useExecutionStore.getState().error).toEqual(new Error('failed to hydrate store'))
+      })
+    } finally {
+      setExecutionSpy.mockRestore()
+    }
+  })
+
+  it('wraps non-Error auto-load failures before storing them', async () => {
+    const mockExecution = createMockExecution()
+    const setExecutionSpy = vi.spyOn(useExecutionStore.getState(), 'setExecution').mockImplementation(() => {
+      throw 'boom'
+    })
+
+    vi.mocked(executionsClient.useQuery).mockReturnValue({
+      data: mockExecution,
+      isLoading: false,
+      isSuccess: true,
+      error: null,
+      refetch: vi.fn(),
+    })
+
+    try {
+      renderHook(() => useExecutionData('exec-123'), { wrapper })
+
+      await waitFor(() => {
+        const storeError = useExecutionStore.getState().error
+        expect(storeError).toBeInstanceOf(Error)
+        expect(storeError?.message).toContain('boom')
+      })
+    } finally {
+      setExecutionSpy.mockRestore()
+    }
+  })
+
+  it('returns null error when the query reports undefined', () => {
+    vi.mocked(executionsClient.useQuery).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isSuccess: false,
+      error: undefined,
+      refetch: vi.fn(),
+    })
+
+    const { result } = renderHook(() => useExecutionData('exec-123'), { wrapper })
+
+    expect(result.current.error).toBeNull()
+  })
+
   it('handles execution with complete workflow definition', async () => {
     const mockExecution = createMockExecution({
       workflow_definition: {
@@ -459,5 +525,37 @@ describe('useShouldStreamExecution', () => {
     const { result } = renderHook(() => useShouldStreamExecution('exec-123'), { wrapper })
 
     expect(result.current).toBe(false)
+  })
+
+  it('returns false for completed_with_errors execution', () => {
+    const mockExecution = createMockExecution({ status: 'completed_with_errors' })
+
+    vi.mocked(executionsClient.useQuery).mockReturnValue({
+      data: mockExecution,
+      isLoading: false,
+      isSuccess: true,
+      error: null,
+      refetch: vi.fn(),
+    })
+
+    const { result } = renderHook(() => useShouldStreamExecution('exec-123'), { wrapper })
+
+    expect(result.current).toBe(false)
+  })
+
+  it('returns false when execution status is missing', () => {
+    const mockExecution = createMockExecution({ status: undefined })
+
+    vi.mocked(executionsClient.useQuery).mockReturnValue({
+      data: mockExecution,
+      isLoading: false,
+      isSuccess: true,
+      error: null,
+      refetch: vi.fn(),
+    })
+
+    const { result } = renderHook(() => useShouldStreamExecution('exec-123'), { wrapper })
+
+    expect(result.current).toBe(true)
   })
 })
