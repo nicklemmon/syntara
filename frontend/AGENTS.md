@@ -127,6 +127,7 @@ The items below cover patterns ESLint **cannot** catch:
 31. **Prefer ref callback cleanup functions** -- when attaching DOM listeners or observers, return a cleanup from the ref callback instead of pairing `useRef` + `useEffect` (see [`.claude/skills/frontend-coding-standards/SKILL.md`](../.claude/skills/frontend-coding-standards/SKILL.md) §38)
 32. **No new `useContext`** -- React 19 reads context with `use(Context)`; do not add `useContext` (see [`.claude/skills/frontend-coding-standards/SKILL.md`](../.claude/skills/frontend-coding-standards/SKILL.md) §39)
 33. **Prefer `useOptimistic` for clear toggle/counter mutations** -- update UI inside a `startTransition` Action with `mutateAsync`; do not hand-roll pending mirror state for simple before/after mutations (see [`.claude/skills/frontend-coding-standards/SKILL.md`](../.claude/skills/frontend-coding-standards/SKILL.md) §40)
+34. **Use one object parameter for 5 or more function arguments** -- do not write functions with 5 or more separate positional parameters; use one object parameter instead. ESLint enforces this at `error` (`max-params`, threshold 4) (see [`.claude/skills/frontend-coding-standards/SKILL.md`](../.claude/skills/frontend-coding-standards/SKILL.md) §43)
 
 ### Feature Preservation Rules
 

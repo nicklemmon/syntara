@@ -1961,3 +1961,27 @@ Reference implementation: `useOptimisticCredentialEnabled` (credentials list ena
 ## 42. Use `ReactNode` Lists for Multi-Item Toast/Alert Content — Not `join('\n')`
 
 **When displaying multiple items in an alert or toast body, render a `ReactNode` list, not `array.join('\n')`.** Browsers collapse `\n` in HTML, so joined warnings appear on one line. `showAlert` / `showWarning` `description` already accepts `ReactNode`. Use a **module-scoped** helper (not nested in the caller) that renders PatternFly `List` / `ListItem` — not a raw `<ul>` or inline `style`.
+
+---
+
+## 43. Use an Object Parameter for 5 or More Arguments
+
+**A function with 5 or more separate positional parameters must take one object parameter instead.** Named fields at the call site are easier to read, and argument order no longer matters.
+
+```ts
+// ❌ BAD
+function createWorkflowActivity(name: string, nodeId: string, status: ExecutionStatus, timestamp: string, output: unknown) { ... }
+
+// ✅ GOOD
+function createWorkflowActivity(input: {
+  name: string
+  nodeId: string
+  status: ExecutionStatus
+  timestamp: string
+  output: unknown
+}) { ... }
+```
+
+**Enforcement:** `max-params` is `['error', 4]` in `eslint.config.js` (at most 4 positional params; 5+ fails CI).
+
+**Exception:** React components already take one `props` object. This rule is about plain functions and hooks.
