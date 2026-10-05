@@ -123,6 +123,7 @@ jobs:
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           base: devel
+          sign-commits: true
           branch: ${{ env.BASELINE_REFRESH_BRANCH }}
           delete-branch: true
           add-paths: frontend/packages/syntara-ui/e2e/visual-regression/page-screenshots.spec.ts-snapshots/**
@@ -143,6 +144,29 @@ jobs:
             This branch is reused week to week: if last Monday's PR is still open, this run updated it in place with the latest diff instead of opening a duplicate.
 
             _Opened automatically by the weekly Visual Regression workflow. No application code is included — baseline PNGs only._
+
+      - name: Verify baseline commit signature
+        if: >-
+          contains(fromJson('["created", "updated"]'), steps.create-pr.outputs.pull-request-operation)
+        uses: actions/github-script@373c709c69115d41ff229c7e5df9f8788daa9553 # v9
+        env:
+          BASELINE_COMMIT_SHA: ${{ steps.create-pr.outputs.pull-request-head-sha }}
+        with:
+          script: |
+            const { data: commit } = await github.rest.git.getCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: process.env.BASELINE_COMMIT_SHA,
+            });
+
+            if (!commit.verification.verified) {
+              core.setFailed(
+                `GitHub did not verify the baseline commit ${commit.sha} (reason: ${commit.verification.reason}).`
+              );
+              return;
+            }
+
+            core.info(`GitHub verified baseline commit ${commit.sha}.`);
 
       - name: Notify Slack that baseline PR is ready
         if: >-

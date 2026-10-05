@@ -256,6 +256,14 @@ jobs:
               parents: [headSha],
             });
 
+            if (!commit.data.verification?.verified) {
+              const reason = commit.data.verification?.reason || 'unknown';
+              core.setFailed(
+                `GitHub did not verify commit ${commit.data.sha} (reason: ${reason}).`
+              );
+              return;
+            }
+
             await github.rest.git.updateRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
