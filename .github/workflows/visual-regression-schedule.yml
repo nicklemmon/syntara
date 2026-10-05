@@ -132,7 +132,6 @@ jobs:
           title: >-
             Visual regression: weekly baseline refresh
             (${{ steps.detect.outputs.added }} new, ${{ steps.detect.outputs.modified }} changed)
-          team-reviewers: uxd-team
           body: |
             Weekly scheduled run against `devel` regenerated every screenshot in `page-registry.ts`. **${{ steps.detect.outputs.added }}** are new, **${{ steps.detect.outputs.modified }}** changed since last Monday's run.
 
