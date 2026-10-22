@@ -3,7 +3,7 @@ import { lazy, StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 
 import { ErrorBoundary } from './components/ErrorBoundary'
-import { ensureDocumentColorScheme } from './providers/theme/colorScheme.js'
+import { ensureDocumentColorScheme } from './providers/theme/colorScheme'
 import { registerAllNodes } from './routes/builder/registry/nodes'
 import './index.css'
 
@@ -12,7 +12,7 @@ registerAllNodes()
 
 ensureDocumentColorScheme()
 
-const App = lazy(() => import('./app/App.js'))
+const App = lazy(() => import('./app/App'))
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- standard React entry point: root element is always present in index.html
 createRoot(document.getElementById('root')!).render(
